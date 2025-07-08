@@ -11,8 +11,8 @@ public class CustomerRestClient {
 
     private final RestClient restClient;
 
-    String username = "user";
-    String password = "{noop}the_cake";
+    String username = "admin";
+    String password = "is_a_lie";
     String encodedCredentials = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
 
     public CustomerRestClient() {
