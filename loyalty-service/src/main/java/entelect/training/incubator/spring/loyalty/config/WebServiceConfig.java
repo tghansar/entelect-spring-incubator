@@ -25,17 +25,17 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     }
     
     @Bean(name = "rewards")
-    public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema countriesSchema) {
+    public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema rewardsSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
         wsdl11Definition.setPortTypeName("RewardsPort");
         wsdl11Definition.setLocationUri("/ws");
         wsdl11Definition.setTargetNamespace("http://entelect.training/incubator/spring-loyalty-service");
-        wsdl11Definition.setSchema(countriesSchema);
+        wsdl11Definition.setSchema(rewardsSchema);
         return wsdl11Definition;
     }
     
     @Bean
-    public XsdSchema countriesSchema() {
+    public XsdSchema rewardsSchema() {
         return new SimpleXsdSchema(new ClassPathResource("Rewards.xsd"));
     }
 }

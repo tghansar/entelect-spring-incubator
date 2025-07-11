@@ -1,13 +1,13 @@
-package entelect.training.incubator.spring.booking.client;
+package entelect.training.incubator.spring.booking.restclient;
 
-import entelect.training.incubator.spring.booking.client.dto.Flight;
+import entelect.training.incubator.spring.booking.restclient.dto.Customer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.Base64;
 
 @Component
-public class FlightRestClient {
+public class CustomerRestClient {
 
     private final RestClient restClient;
 
@@ -15,17 +15,17 @@ public class FlightRestClient {
     String password = "is_a_lie";
     String encodedCredentials = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
 
-    public FlightRestClient() {
+    public CustomerRestClient() {
         restClient = RestClient.builder()
-                .baseUrl("http://localhost:8202")
+                .baseUrl("http://localhost:8201")
                 .defaultHeader("Authorization", "Basic " + encodedCredentials)
                 .build();
     }
 
-    public Flight getFlightById(Integer flightId) {
+    public Customer getCustomersById(Integer customerId) {
         return restClient.get()
-                .uri("/flights/{flightId}", flightId)
+                .uri("/customers/{customerId}", customerId)
                 .retrieve()
-                .body(Flight.class);
+                .body(Customer.class);
     }
 }

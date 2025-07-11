@@ -1,7 +1,7 @@
 package entelect.training.incubator.spring.booking.controller;
 
-import entelect.training.incubator.spring.booking.client.CustomerRestClient;
-import entelect.training.incubator.spring.booking.client.FlightRestClient;
+import entelect.training.incubator.spring.booking.restclient.CustomerRestClient;
+import entelect.training.incubator.spring.booking.restclient.FlightRestClient;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.SearchType;

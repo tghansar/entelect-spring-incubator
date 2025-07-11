@@ -1,4 +1,4 @@
-package entelect.training.incubator.spring.booking.client.dto;
+package entelect.training.incubator.spring.booking.restclient.dto;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
