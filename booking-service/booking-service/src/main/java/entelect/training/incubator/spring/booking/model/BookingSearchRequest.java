@@ -10,4 +10,5 @@ public class BookingSearchRequest {
     private Integer customerId;
     private Integer flightId;
     private String referenceNumber;
+    private String passportNumber;
 }

@@ -3,21 +3,32 @@ package entelect.training.incubator.spring.booking.service;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
+import entelect.training.incubator.spring.booking.soapclient.RewardsClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final RewardsClient rewardsClient;
 
     public Booking createBooking(BookingSearchRequest request) {
+        String passportNumber = request.getPassportNumber();
+
+        BigDecimal latestBalance = rewardsClient.captureRewards(passportNumber, new BigDecimal(100));
+        log.info("Rewards captured for passport number {}", passportNumber);
+        log.info("Rewards balance retrieved for passport number {}: {}", passportNumber, latestBalance);
+
         Booking booking = new Booking();
         booking.setCustomerId(request.getCustomerId());
         booking.setFlightId(request.getFlightId());

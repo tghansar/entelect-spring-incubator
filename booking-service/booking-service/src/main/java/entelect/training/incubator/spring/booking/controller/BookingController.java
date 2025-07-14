@@ -48,6 +48,11 @@ public class BookingController {
             return ResponseEntity.badRequest().body("Flight with ID " + request.getFlightId() + " does not exist");
         }
 
+        if (request.getPassportNumber() == null) {
+            LOGGER.warn("Passport number is null");
+            return ResponseEntity.badRequest().body("Passport number must be provided");
+        }
+
         Booking savedBooking = bookingService.createBooking(request);
 
         LOGGER.trace("Booking created");
