@@ -1,10 +1,16 @@
 package entelect.training.incubator.spring.booking.service;
 
+import entelect.training.incubator.spring.booking.exception.CustomerNotFound;
+import entelect.training.incubator.spring.booking.exception.FlightNotFoundException;
 import entelect.training.incubator.spring.booking.kafka.KafkaProducer;
 import entelect.training.incubator.spring.booking.kafka.MessageNotification;
-import entelect.training.incubator.spring.booking.model.Booking;
-import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
+import entelect.training.incubator.spring.booking.model.entity.Booking;
+import entelect.training.incubator.spring.booking.model.dto.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
+import entelect.training.incubator.spring.booking.restclient.CustomerRestClient;
+import entelect.training.incubator.spring.booking.restclient.FlightRestClient;
+import entelect.training.incubator.spring.booking.restclient.dto.Customer;
+import entelect.training.incubator.spring.booking.restclient.dto.Flight;
 import entelect.training.incubator.spring.booking.soapclient.RewardsClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,26 +28,36 @@ import java.util.List;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final CustomerRestClient customerRestClient;
+    private final FlightRestClient flightRestClient;
     private final RewardsClient rewardsClient;
     private final KafkaProducer kafkaProducer;
 
     public Booking createBooking(BookingSearchRequest request) {
+
+        Customer customer = customerRestClient.getCustomersById(request.getCustomerId());
+        if(customer == null) {
+            throw new CustomerNotFound("Customer with ID " + request.getCustomerId() + " does not exist");
+        }
+
+        Flight flight = flightRestClient.getFlightById(request.getFlightId());
+        if(flight == null) {
+            throw new FlightNotFoundException("Flight with ID " + request.getFlightId() + " does not exist");
+        }
+
+        rewardsClient.captureRewards(customer.getPassportNumber(), new BigDecimal(100));
+
         LocalDateTime currentTime = LocalDateTime.now();
 
-        String passportNumber = request.getPassportNumber();
-        BigDecimal latestBalance = rewardsClient.captureRewards(passportNumber, new BigDecimal(100));
-        log.info("Rewards captured for passport number {}", passportNumber);
-        log.info("Rewards balance retrieved for passport number {}: {}", passportNumber, latestBalance);
-
-        String smsMessage = buildMessageForKafka(request, currentTime);
+        String smsMessage = buildMessageForKafka(customer, flight, currentTime);
         MessageNotification messageNotification = MessageNotification.builder()
-                .phoneNumber(request.getPhoneNumber())
+                .phoneNumber(customer.getPhoneNumber())
                 .message(smsMessage)
                 .build();
         kafkaProducer.sendToKafka(messageNotification);
 
         Booking booking = new Booking();
-        booking.setCustomerId(request.getCustomerId());
+        booking.setCustomerId(customer.getId());
         booking.setFlightId(request.getFlightId());
         booking.setBookingDate(currentTime.toString());
         booking.setStatus("ACTIVE");
@@ -75,16 +91,18 @@ public class BookingService {
                 (int) (Math.random() * 100);
     }
 
-    private String buildMessageForKafka(BookingSearchRequest request, LocalDateTime currentTime) {
+    private String buildMessageForKafka(Customer customer, Flight flight, LocalDateTime currentTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        StringBuilder message = new StringBuilder()
+        return new StringBuilder()
                 .append("Molo Air: Confirming flight ")
-                .append(request.getFlightId())
+                .append(flight.getId())
                 .append(" booked for ")
-                .append(request.getCustomerName())
+                .append(customer.getFirstName())
+                .append(" ")
+                .append(customer.getLastName())
                 .append(" on ")
                 .append(currentTime.format(formatter))
-                .append(".");
-        return message.toString();
+                .append(".")
+                .toString();
     }
 }

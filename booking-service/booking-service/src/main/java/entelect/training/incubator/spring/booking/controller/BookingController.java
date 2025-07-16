@@ -1,101 +1,70 @@
 package entelect.training.incubator.spring.booking.controller;
 
-import entelect.training.incubator.spring.booking.restclient.CustomerRestClient;
-import entelect.training.incubator.spring.booking.restclient.FlightRestClient;
-import entelect.training.incubator.spring.booking.model.Booking;
-import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
-import entelect.training.incubator.spring.booking.model.SearchType;
+import entelect.training.incubator.spring.booking.model.entity.Booking;
+import entelect.training.incubator.spring.booking.model.dto.BookingSearchRequest;
+import entelect.training.incubator.spring.booking.model.dto.SearchType;
 import entelect.training.incubator.spring.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("bookings")
+@Slf4j
 @RequiredArgsConstructor
 public class BookingController {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(BookingController.class);
-
     private final BookingService bookingService;
-    private final CustomerRestClient customerRestClient;
-    private final FlightRestClient flightRestClient;
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody BookingSearchRequest request) {
-        LOGGER.info("Processing booking creation request for booking={}", request);
+        log.info("Processing booking creation request for booking={}", request);
 
         if (request.getCustomerId() == null) {
-            LOGGER.warn("Customer id is null");
+            log.warn("Customer id is null");
             return ResponseEntity.badRequest().body("Customer ID must be provided");
         }
 
         if (request.getFlightId() == null) {
-            LOGGER.warn("Flight id is null");
+            log.warn("Flight id is null");
             return ResponseEntity.badRequest().body("Flight ID must be provided");
-        }
-
-        if(customerRestClient.getCustomersById(request.getCustomerId()) == null) {
-            LOGGER.warn("Customer with id={} not found", request.getCustomerId());
-            return ResponseEntity.badRequest().body("Customer with ID " + request.getCustomerId() + " does not exist");
-        }
-
-        if(flightRestClient.getFlightById(request.getFlightId()) == null) {
-            LOGGER.warn("Flight with id={} not found", request.getFlightId());
-            return ResponseEntity.badRequest().body("Flight with ID " + request.getFlightId() + " does not exist");
-        }
-
-        if (request.getPassportNumber() == null) {
-            LOGGER.warn("Passport number is null");
-            return ResponseEntity.badRequest().body("Passport number must be provided");
-        }
-
-        if (request.getPhoneNumber() == null) {
-            LOGGER.warn("Phone number is null");
-            return ResponseEntity.badRequest().body("Phone number must be provided");
-        }
-
-        if (request.getCustomerName() == null) {
-            LOGGER.warn("Customer name is null");
-            return ResponseEntity.badRequest().body("Customer name must be provided");
         }
 
         Booking savedBooking = bookingService.createBooking(request);
 
-        LOGGER.trace("Booking created");
+        log.trace("Booking created");
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getBookingById(@PathVariable Integer id) {
-        LOGGER.info("Processing booking search request for booking id={}", id);
+        log.info("Processing booking search request for booking id={}", id);
         Booking booking = bookingService.getBookingById(id);
 
         if (booking != null) {
-            LOGGER.trace("Found booking");
+            log.trace("Found booking");
             return new ResponseEntity<>(booking, HttpStatus.OK);
         }
 
-        LOGGER.trace("Booking not found");
+        log.trace("Booking not found");
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/search")
     public ResponseEntity<?> searchBookings(@RequestBody BookingSearchRequest request) {
-        LOGGER.info("Processing booking search request for booking={}", request);
+        log.info("Processing booking search request for booking={}", request);
 
         SearchType searchType = request.getSearchType();
 
         if (searchType == null) {
-            LOGGER.warn("Search type is null");
+            log.warn("Search type is null");
             return ResponseEntity.badRequest().body("Search type must be provided");
         }
         if (searchType == SearchType.CUSTOMER_ID_SEARCH) {
             if (request.getCustomerId() == null) {
-                LOGGER.warn("Customer id is null");
+                log.warn("Customer id is null");
                 return ResponseEntity.badRequest().body("Customer ID must be provided for customer ID search");
             }
             var bookings = bookingService.getBookingsForCustomerId(request.getCustomerId());
@@ -103,13 +72,13 @@ public class BookingController {
         }
         else if (searchType == SearchType.REFERENCE_NUMBER_SEARCH) {
             if (request.getReferenceNumber() == null) {
-                LOGGER.warn("Booking reference number is null");
+                log.warn("Booking reference number is null");
                 return ResponseEntity.badRequest().body("Booking reference number must be provided for booking reference search");
             }
             var bookings = bookingService.getBookingsForReferenceNo(request.getReferenceNumber());
             return new ResponseEntity<>(bookings, HttpStatus.OK);
         }
-        LOGGER.trace("No bookings found");
+        log.trace("No bookings found");
         return ResponseEntity.notFound().build();
     }
 }

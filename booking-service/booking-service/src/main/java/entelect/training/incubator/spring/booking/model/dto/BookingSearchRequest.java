@@ -1,4 +1,4 @@
-package entelect.training.incubator.spring.booking.model;
+package entelect.training.incubator.spring.booking.model.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BookingSearchRequest {
     private SearchType searchType;
-    private String customerName;
+    private String referenceNumber;
     private Integer customerId;
     private Integer flightId;
-    private String referenceNumber;
-    private String passportNumber;
-    private String phoneNumber;
 }
