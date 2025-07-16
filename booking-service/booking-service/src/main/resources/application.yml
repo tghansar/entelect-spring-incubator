@@ -18,3 +18,9 @@ spring:
     user:
       name: admin
       password: admin
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic-name: message-notifications
+    producer:
+      retries: 3
+      acks: all

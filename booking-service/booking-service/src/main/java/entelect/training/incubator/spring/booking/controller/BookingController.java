@@ -53,6 +53,16 @@ public class BookingController {
             return ResponseEntity.badRequest().body("Passport number must be provided");
         }
 
+        if (request.getPhoneNumber() == null) {
+            LOGGER.warn("Phone number is null");
+            return ResponseEntity.badRequest().body("Phone number must be provided");
+        }
+
+        if (request.getCustomerName() == null) {
+            LOGGER.warn("Customer name is null");
+            return ResponseEntity.badRequest().body("Customer name must be provided");
+        }
+
         Booking savedBooking = bookingService.createBooking(request);
 
         LOGGER.trace("Booking created");

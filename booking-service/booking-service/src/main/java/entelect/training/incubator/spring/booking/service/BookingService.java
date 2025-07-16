@@ -1,5 +1,7 @@
 package entelect.training.incubator.spring.booking.service;
 
+import entelect.training.incubator.spring.booking.kafka.KafkaProducer;
+import entelect.training.incubator.spring.booking.kafka.MessageNotification;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
@@ -21,20 +23,29 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RewardsClient rewardsClient;
+    private final KafkaProducer kafkaProducer;
 
     public Booking createBooking(BookingSearchRequest request) {
-        String passportNumber = request.getPassportNumber();
+        LocalDateTime currentTime = LocalDateTime.now();
 
+        String passportNumber = request.getPassportNumber();
         BigDecimal latestBalance = rewardsClient.captureRewards(passportNumber, new BigDecimal(100));
         log.info("Rewards captured for passport number {}", passportNumber);
         log.info("Rewards balance retrieved for passport number {}: {}", passportNumber, latestBalance);
 
+        String smsMessage = buildMessageForKafka(request, currentTime);
+        MessageNotification messageNotification = MessageNotification.builder()
+                .phoneNumber(request.getPhoneNumber())
+                .message(smsMessage)
+                .build();
+        kafkaProducer.sendToKafka(messageNotification);
+
         Booking booking = new Booking();
         booking.setCustomerId(request.getCustomerId());
         booking.setFlightId(request.getFlightId());
-        booking.setBookingDate(LocalDateTime.now().toString());
+        booking.setBookingDate(currentTime.toString());
         booking.setStatus("ACTIVE");
-        booking.setReferenceNumber(generateReferenceNo());
+        booking.setReferenceNumber(generateReferenceNo(currentTime));
         return bookingRepository.save(booking);
     }
 
@@ -58,10 +69,22 @@ public class BookingService {
         return bookings;
     }
 
-    private String generateReferenceNo() {
-        LocalDateTime now = LocalDateTime.now();
+    private String generateReferenceNo(LocalDateTime currentTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        return now.format(formatter) +
+        return currentTime.format(formatter) +
                 (int) (Math.random() * 100);
+    }
+
+    private String buildMessageForKafka(BookingSearchRequest request, LocalDateTime currentTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        StringBuilder message = new StringBuilder()
+                .append("Molo Air: Confirming flight ")
+                .append(request.getFlightId())
+                .append(" booked for ")
+                .append(request.getCustomerName())
+                .append(" on ")
+                .append(currentTime.format(formatter))
+                .append(".");
+        return message.toString();
     }
 }

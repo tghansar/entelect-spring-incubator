@@ -32,19 +32,20 @@
             <artifactId>spring-boot-starter-web-services</artifactId>
         </dependency>
 
-        <!-- Spring Web Services for SOAP -->
+        <!-- Spring web services for SOAP -->
         <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-ws-core</artifactId>
         </dependency>
 
-        <!-- JAXB for XML Binding -->
+        <!-- JAXB for XML binding -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
         </dependency>
 
+        <!-- WSDL document processing -->
         <dependency>
             <groupId>wsdl4j</groupId>
             <artifactId>wsdl4j</artifactId>
@@ -55,6 +56,12 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Kafka client -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
     </dependencies>
 
